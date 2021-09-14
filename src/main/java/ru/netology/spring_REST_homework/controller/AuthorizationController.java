@@ -1,10 +1,11 @@
 package ru.netology.spring_REST_homework.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import ru.netology.spring_REST_homework.Authorities;
 import ru.netology.spring_REST_homework.exception.InvalidCredentials;
 import ru.netology.spring_REST_homework.exception.UnauthorizedUser;
@@ -22,14 +23,16 @@ public class AuthorizationController {
 
     @GetMapping("/authorize")
     public List<Authorities> getAuthorities(@RequestParam("user") String user, @RequestParam("password") String password) {
-        try {
-            List<Authorities> authorities = service.getAuthorities(user, password);
-            return authorities;
-        } catch (InvalidCredentials exc) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exc.getMessage(), exc);
-        } catch (UnauthorizedUser exc) {
-            System.out.println(exc.getMessage());
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exc.getMessage(), exc);
-        }
+        return service.getAuthorities(user, password);
+    }
+
+    @ExceptionHandler(InvalidCredentials.class)
+    ResponseEntity<String> handleICE(InvalidCredentials exc) {
+      return new ResponseEntity<>(exc.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UnauthorizedUser.class)
+    ResponseEntity<String> handleUUE(UnauthorizedUser exc) {
+        return new ResponseEntity<>(exc.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 }
